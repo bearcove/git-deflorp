@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 camino = "1.1.6"
 crc32fast = "1.4.0"
-git-hash = "0.10.3"
-git-pack = "0.31.0"
+gix-hash = "0.10.3"
+gix-pack = "0.31.0"
 sha-1 = "0.10.1"

@@ -65,7 +65,7 @@ fn main() {
         std::process::exit(1);
     }
 
-    let object_hash = git_hash::Kind::Sha1;
+    let object_hash = gix_hash::Kind::Sha1;
 
     // list all git packs. those are `.pack` files in the `.git/objects/pack` directory
     let pack_dir = repo.join(".git").join("objects").join("pack");
@@ -75,7 +75,7 @@ fn main() {
         if path.extension().unwrap() == "pack" {
             println!("Found pack: {}", path.display());
 
-            let bundle = git_pack::Bundle::at(path, object_hash).unwrap();
+            let bundle = gix_pack::Bundle::at(path, object_hash).unwrap();
             for idx_entry in bundle.index.iter() {
                 println!("Entry: {:?}", idx_entry);
 
@@ -95,7 +95,7 @@ fn main() {
                 //     assert_eq!(crc32, idx_crc32, "CRC32 mismatch");
                 // }
 
-                // compute the sha-1 hash of out, using the right git_hash::Kind
+                // compute the sha-1 hash of out, using the right gix_hash::Kind
                 let mut hasher = Sha1::new();
                 hasher.update(&out);
                 let result = hasher.finalize();
