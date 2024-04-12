@@ -36,7 +36,7 @@ fn main() {
             gh_token = Some(token);
             println!("Grabbed GitHub token from GITHUB_TOKEN environment variable");
         }
-        Err(e) => {
+        Err(_) => {
             // do nothing
         }
     }
