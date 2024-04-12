@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 camino = "1.1.6"
+git-hash = "0.10.3"
+git-pack = "0.31.0"

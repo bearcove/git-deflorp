@@ -64,5 +64,18 @@ fn main() {
         std::process::exit(1);
     }
 
-    // show first 4 and last 4 of github token
+    // list all git packs. those are `.pack` files in the `.git/objects/pack` directory
+    let pack_dir = repo.join(".git").join("objects").join("pack");
+    for entry in pack_dir.read_dir().unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.extension().unwrap() == "pack" {
+            println!("Found pack: {}", path.display());
+
+            let bundle = git_pack::Bundle::at(path, git_hash::Kind::Sha1).unwrap();
+            for entry in bundle.index.iter() {
+                println!("Entry: {:?}", entry);
+            }
+        }
+    }
 }
