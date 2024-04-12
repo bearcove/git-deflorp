@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use camino::Utf8PathBuf;
+use sha1::{Digest, Sha1};
 
 fn main() {
     // make sure `git --version` runs
@@ -64,6 +65,8 @@ fn main() {
         std::process::exit(1);
     }
 
+    let object_hash = git_hash::Kind::Sha1;
+
     // list all git packs. those are `.pack` files in the `.git/objects/pack` directory
     let pack_dir = repo.join(".git").join("objects").join("pack");
     for entry in pack_dir.read_dir().unwrap() {
@@ -72,9 +75,31 @@ fn main() {
         if path.extension().unwrap() == "pack" {
             println!("Found pack: {}", path.display());
 
-            let bundle = git_pack::Bundle::at(path, git_hash::Kind::Sha1).unwrap();
-            for entry in bundle.index.iter() {
-                println!("Entry: {:?}", entry);
+            let bundle = git_pack::Bundle::at(path, object_hash).unwrap();
+            for idx_entry in bundle.index.iter() {
+                println!("Entry: {:?}", idx_entry);
+
+                let pack_entry = bundle.pack.entry(idx_entry.pack_offset);
+                let mut out = vec![0u8; pack_entry.decompressed_size as usize];
+                let n = bundle.pack.decompress_entry(&pack_entry, &mut out).unwrap();
+                println!(
+                    "Decompressed {} bytes (expected {})",
+                    n, pack_entry.decompressed_size
+                );
+
+                // compute the crc32 of out
+                let crc32 = crc32fast::hash(&out);
+                // compare with the crc32 in the index
+                println!("CRC32: {:x}, index {:x}", crc32, idx_entry.crc32.unwrap());
+                // if let Some(idx_crc32) = idx_entry.crc32 {
+                //     assert_eq!(crc32, idx_crc32, "CRC32 mismatch");
+                // }
+
+                // compute the sha-1 hash of out, using the right git_hash::Kind
+                let mut hasher = Sha1::new();
+                hasher.update(&out);
+                let result = hasher.finalize();
+                println!("SHA1: {:x}", result);
             }
         }
     }
